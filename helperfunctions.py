@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.spatial.distance import cdist
-from scipy.linalg import solve
 from matplotlib import pyplot as plt
 
 
@@ -51,10 +50,9 @@ def posterior (kernel, outputs, var = 1.0, lengthscale = 1.0, n_samples = 5):
     KXXt = RBF(Xplot, Xtest)
     KXtXt = RBF(Xtest, Xtest)
     
-    solved = solve(KXX, KXXt, assume_a='pos').T
-    
-    mean_posterior = solved @ outputs #np.matmul(np.matmul(KXXt, np.linalg.inv(KXX)), outputs)
-    cov_posterior = KXtXt - (solved @ KXXt) # KXtXt - np.matmul( np.matmul(KXtXt, KXX), KXXt )
+        
+    mean_posterior = np.matmul(np.matmul(KXXt, np.linalg.inv(KXX)), outputs)
+    cov_posterior = KXtXt - np.matmul( np.matmul(KXtXt, KXX), KXXt )
        
     posterior = np.random.multivariate_normal(mean_posterior.T[0], cov_posterior, 5, 'warn')
     
