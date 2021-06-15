@@ -1,65 +1,57 @@
 import numpy as np
 from scipy.spatial.distance import cdist
-from matplotlib import pyplot as plt
+from scipy import linalg
 
 
 
-def random_inputs_outputs_test_generator(N = 12, var = 1.0, N_test = 5, seed = None):   
+def random_inputs_outputs_test_generator (N = 12, var = 1.0, N_test = 10, seed = None):   
     
     np.random.seed(seed)
     inputs = 5 * np.random.rand(N,1)
-    outputs = np.sin(12*inputs) + 0.66*np.cos(25*inputs) + np.random.randn(N,1)*0.1
-    test_inputs = np.random.rand(N_test,1)
-    test_outputs = np.sin(12*test_inputs) + 0.66*np.cos(25*test_inputs) + np.random.randn(N_test,1)*0.1
+    outputs = np.sin(2*inputs) + np.cos(inputs) +np.random.randn(N,1)*0.4 #☻ np.sin(12*inputs) + 0.66*np.cos(25*inputs) + np.random.randn(N,1)*0.1
+    test_inputs = 5 * np.random.rand(N_test,1)
+    test_outputs = np.sin(2*inputs) + np.cos(inputs) +np.random.randn(N,1)*0.4
     
     return inputs, outputs, test_inputs, test_outputs
 
 
+
 def RBF(X, Y, var = 1.0, lengthscale = 1.0):
     
-#    kx1x2 = var * np.exp(-0.5 * cdist(X, Y, 'sqeuclidean') / lengthscale**2)
-    kx1x2 = var * np.exp(-0.5 * np.square(cdist(X, X)) / lengthscale**2)
+    kx1x2 = var * np.exp(-0.5 * np.square(cdist(X, Y)) / lengthscale**2) #0.6 cool
     
     return kx1x2
 
 
-def prior(kernel, n_samples = 5):
+
+def prior (kernel, inputs, var = 1.0, lengthscale = 1.0, n_samples = 6):
     
     # compute prior  
-    Xplot = np.expand_dims(np.linspace(0, 5, 100), 1) # 100 points in each sample by default
-    mean = np.zeros(len(Xplot))
-    Kprior = RBF(Xplot, Xplot)
+    var = 1.0
+    lenngthscale = 1.0
+    mean = np.zeros(len(inputs))
+    Kprior = RBF(inputs, inputs, var, lenngthscale)
     prior = np.random.multivariate_normal(mean, Kprior, n_samples)    
-    
-    # plot samples
-
-    for i in range(n_samples):
-        plt.plot(Xplot, prior[i], linestyle = '-', marker = 'x', markersize = 0)
-    
-    return None
 
 
-def posterior (kernel, outputs, var = 1.0, lengthscale = 1.0, n_samples = 5):
-    
-    global local_vars
-    
-    Xplot = np.expand_dims(np.linspace(0, 5, 100), 1) # 100 points in each sample by default
-    Xtest = np.expand_dims(np.linspace(0, 5, 100), 1) # 80 test input points in by default
-    
-    KXX = RBF(Xplot, Xplot)
-    KXXt = RBF(Xplot, Xtest)
-    KXtXt = RBF(Xtest, Xtest)
-    
-        
-    mean_posterior = np.matmul(np.matmul(KXXt, np.linalg.inv(KXX)), outputs)
-    cov_posterior = KXtXt - np.matmul( np.matmul(KXtXt, KXX), KXXt )
-       
-    posterior = np.random.multivariate_normal(mean_posterior.T[0], cov_posterior, 5, 'warn')
-    
-    Xplot = np.expand_dims(np.linspace(0, 5, 50), 1)
+    return prior
 
-    for i in range(n_samples):
-        plt.plot(Xplot, posterior[i], linestyle = '-', marker = 'x', markersize = 0)
+
+
+def posterior (kernel, inputs, outputs, test_inputs, var = 1.0, lengthscale = 1.0, n_samples = 5):    
+    
+    
+    KXX = kernel(inputs, inputs, var, lengthscale)
+    KXXt = kernel(inputs, test_inputs, var, lengthscale)
+    #print(KXXt.T == KXtX)
+    #print('Kxxt', KXXt.shape)
+    KXtXt = RBF(test_inputs, test_inputs, var, lengthscale)
+    
+    sigma = 0.1
+           
+    mean_posterior = np.matmul(linalg.solve((KXX + (sigma**2) * np.identity(KXX.shape[0])), KXXt).T, outputs) #np.matmul(a, outputs)
+                    # KXXt.T.dot(K_inv).dot(Y_train)
+    cov_posterior = KXtXt - np.matmul(linalg.solve((KXX + (sigma**2) * np.identity(KXX.shape[0])), KXXt).T, KXXt)# + sigma**2 * np.identity(KXtXt.shape[0]) - np.matmul(np.matmul(KXXt.T, KXX + sigma**2 * np.identity(KXX.shape[0])), KXXt )
 
     
     return mean_posterior, cov_posterior
