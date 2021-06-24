@@ -47,7 +47,7 @@ def posterior (kernel, inputs, outputs, test_inputs, var = 1.0, lengthscale = 1.
     #print('Kxxt', KXXt.shape)
     KXtXt = RBF(test_inputs, test_inputs, var, lengthscale)
     
-    sigma = 0.1
+    sigma = 1.0
            
     mean_posterior = np.matmul(linalg.solve((KXX + (sigma**2) * np.identity(KXX.shape[0])), KXXt).T, outputs) #np.matmul(a, outputs)
                     # KXXt.T.dot(K_inv).dot(Y_train)
