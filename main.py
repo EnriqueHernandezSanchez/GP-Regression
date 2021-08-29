@@ -82,3 +82,21 @@ plt.plot(Xplot, mean_posterior_plot.T[0], linestyle = '-', marker = 'x', markers
 plt.plot(Xplot, mean_posterior_plot.T[0] + covariances, linestyle = 'dashed', color = 'red')
 plt.plot(Xplot, mean_posterior_plot.T[0] - covariances, linestyle = 'dashed', color = 'red')
 plt.legend(['training points', 'f(x)', "mean function", 'standard dev.'], loc ="upper right")
+
+plt.figure(5)
+plt.title("Training points and underlying function")
+plt.plot(X, Y, 'ro', mew=2)
+plt.plot(Xplot, f, linestyle = '-' ,color = 'green', markersize = 30)
+plt.legend(['training points', 'f(x)']) 
+
+#sigmoid = 1/ (1 + np.exp(-1.0 * f))
+
+#plt.figure(6)
+#plt.title("Underlying function squashed through the sigmoid")
+#plt.plot(Xplot, sigmoid, linestyle = '-' ,color = 'green', markersize = 30)
+#plt.legend(['sig(f(X))']) 
+
+#plt.figure(7)
+#plt.title("Underlying function f(x)")
+#plt.plot(Xplot, f, linestyle = '-' ,color = 'green', markersize = 30)
+#plt.legend(['f(x)']) 
